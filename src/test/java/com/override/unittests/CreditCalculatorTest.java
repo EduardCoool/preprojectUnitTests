@@ -8,6 +8,8 @@ import com.override.unittests.service.CreditCalculator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,31 +27,18 @@ class CreditCalculatorTest {
     @Mock
     private CentralBankService centralBankService;
 
-    @Test
-    public void calculateOverpaymentGovermentTest() {
-        when(centralBankService.getKeyRate()).thenReturn(10d);
-        double amount = 100000d;
-        double monthPaymentAmount = 10000d;
-        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.GOVERMENT);
-        Assertions.assertEquals(10000d, result);
-    }
+    @ParameterizedTest
+    @CsvSource({
+            "100000d, 10000d, GOVERMENT, 10000d",
+            "100000d, 10000d, BUSINESS, 11000d",
+            "100000d, 10000d, INDIVIDUAL, 12000d",
+    })
 
-    @Test
-    public void calculateOverpaymentBusinessTest() {
+    public void calculateOverpaymentByClientType
+            (double amount, double monthPaymentAmount, ClientType clientType, double expected) {
         when(centralBankService.getKeyRate()).thenReturn(10d);
-        double amount = 100000d;
-        double monthPaymentAmount = 10000d;
-        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.BUSINESS);
-        Assertions.assertEquals(11000d, result);
-    }
-
-    @Test
-    public void calculateOverpaymentIndividualTest() {
-        when(centralBankService.getKeyRate()).thenReturn(10d);
-        double amount = 100000d;
-        double monthPaymentAmount = 10000d;
-        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.INDIVIDUAL);
-        Assertions.assertEquals(12000d, result);
+        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, clientType);
+        Assertions.assertEquals(expected, result);
     }
 
     @Test
